@@ -9,6 +9,6 @@ ___
 | 서울시립대 | 기계정보공학과 | 2018430020 | 김태완 |  경량화 및 배포 | 
 ___
 ### 진행사항 기록
-📒 [Notion 링크](https://skipper0527.notion.site/ec8fc8de10b7419aa06d0580e2a9dbe4?pvs=4)<br>
+📒 [Notion](https://www.notion.so/skipper0527/ec8fc8de10b7419aa06d0580e2a9dbe4)<br>
 
 ___
