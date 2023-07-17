@@ -19,6 +19,7 @@ from dfb.paramsampler import *
 
 from dfb.model.ticnn import *
 from dfb.model.wdcnn import *
+from dfb.model.wdcnn2 import *
 from dfb.model.stimcnn import *
 from dfb.model.stftcnn import *
 from dfb.model.clformer import *
@@ -76,6 +77,11 @@ model_info = {
     },
     "wdcnn": {
         "model": WDCNN,
+        "sample_length": 2048,
+        "tf": [NpToTensor(), ToSignal()]
+    },
+    "wdcnn2": {
+        "model": WDCNN2,
         "sample_length": 2048,
         "tf": [NpToTensor(), ToSignal()]
     },
