@@ -2,9 +2,9 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-class WDCNN3(nn.Module):
+class WDCNN4(nn.Module):
     def __init__(self, first_kernel: int=64, n_classes: int=10) -> None:
-        super(WDCNN3, self).__init__()
+        super(WDCNN4, self).__init__()
         self.conv_layers = nn.Sequential(
             #Conv1
             torch.nn.Conv1d(1, 16, first_kernel, stride=16, padding=24),
@@ -25,13 +25,13 @@ class WDCNN3(nn.Module):
             #Pool3
             torch.nn.MaxPool1d(2, 2),
             #Conv4
-            torch.nn.Conv1d(16, 32, 3, stride=1, padding='same'),
-            torch.nn.BatchNorm1d(32),
+            torch.nn.Conv1d(16, 16, 3, stride=1, padding='same'),
+            torch.nn.BatchNorm1d(16),
             torch.nn.ReLU(),
             #Pool4
             torch.nn.MaxPool1d(2, 2),
             #Conv5
-            torch.nn.Conv1d(32, 32, 3, stride=1, padding=0),
+            torch.nn.Conv1d(16, 32, 3, stride=1, padding='same'),
             torch.nn.BatchNorm1d(32),
             torch.nn.ReLU(),
             #Pool5
