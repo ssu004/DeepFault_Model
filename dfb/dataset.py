@@ -102,7 +102,121 @@ def get_dataloader(
         pin_memory=True,
     )
 
+# MinMaxScaler를 적용한 데이터셋을 만들어주는 함수
+# class DatasetHandler:
+#     """
+#     Class that handles multi-domain dataset.
 
+#     Attributes
+#     ----------
+#     dataloaders: Dict
+#         Python dictionary that contains multi-domain datasets.
+#         The keys of the dictionary represents data domain.
+#     """
+#     def __init__(self):
+#         self.dataloaders = {}
+
+#     def assign(
+#         self,
+#         data_train: np.ndarray,
+#         label_train: np.ndarray,
+#         data_val: np.ndarray,
+#         label_val: np.ndarray,
+#         data_test: np.ndarray,
+#         label_test: np.ndarray,
+#         sample_length: int,
+#         tag: str,
+#         transform_data_train: transforms.transforms.Compose,
+#         transform_data_val: transforms.transforms.Compose,
+#         transform_data_test: transforms.transforms.Compose,
+#         transform_label: transforms.transforms.Compose,
+#         batch_size: int,
+#         num_workers: int,
+#     ) -> None:
+#         """Assign dataset to domain ``tag''
+#         Author: Seongjae Lee
+
+#         Parameters
+#         ----------
+#         data_train: np.ndarray
+#             Training data [N, sample_length]
+#         label_train: np.ndarray
+#             Training label [N, ]
+#         data_val: np.ndarray
+#             Validation data [N, sample_length]
+#         label_val: np.ndarray
+#             Validation label [N, ]
+#         data_test: np.ndarray
+#             Test data [N, sample_length]
+#         label_test: np.ndarray
+#             Test label [N, ]
+#         sample_length: int
+#             A sample length of datasets. The sample length of all
+#             datasets must be same.
+#         tag: str
+#             Domain tag.
+#         transform_data_train: torchvision.transforms.transforms.Compose
+#             Data transform class for training dataset.
+#         transform_data_val: torchvision.transforms.transforms.Compose
+#             Data transform class for validation dataset.
+#         transform_data_test: torchvision.transforms.transforms.Compose
+#             Data transform class for test dataset.
+#         transform_label: torchvision.transforms.transforms.Compose
+#             Label transform class.
+#         batch_size: int
+#             Batch size for the model training.
+#         num_workers: int
+#             The number of processors fetching the data.
+
+#         Returns
+#         ----------
+#             No return Values. Just add the dataset to self.dataloaders
+#         """
+#         if data_train.shape[1] < sample_length:
+#             raise ValueError("data length is not compatible for sample length")
+#         if data_val.shape[1] < sample_length:
+#             raise ValueError("data length is not compatible for sample length")
+#         if data_test.shape[1] < sample_length:
+#             raise ValueError("data length is not compatible for sample length")
+
+#         data_train = data_train[:, :sample_length]
+#         data_val = data_val[:, :sample_length]
+#         data_test = data_test[:, :sample_length]
+
+#         train_loader = get_dataloader(
+#             data_train,
+#             label_train,
+#             transform_data_train,
+#             transform_label,
+#             True,
+#             batch_size,
+#             num_workers,
+#         )
+#         val_loader = get_dataloader(
+#             data_val,
+#             label_val,
+#             transform_data_val,
+#             transform_label,
+#             False,
+#             batch_size,
+#             num_workers,
+#         )
+#         test_loader = get_dataloader(
+#             data_test,
+#             label_test,
+#             transform_data_test,
+#             transform_label,
+#             False,
+#             batch_size,
+#             num_workers,
+#         )
+
+#         loaders = {"train": train_loader, "val": val_loader, "test": test_loader}
+
+#         self.dataloaders[tag] = loaders
+
+
+## 기존 코드
 class DatasetHandler:
     """
     Class that handles multi-domain dataset.

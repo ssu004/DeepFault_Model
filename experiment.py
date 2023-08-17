@@ -25,6 +25,7 @@ from dfb.model.stftcnn import *
 from dfb.model.clformer import *
 from dfb.model.qlnrnet import *
 from dfb.model.lnrnext import *
+from dfb.model.wdcnn2 import *
 
 sampler_info = {
     "sgd": {
@@ -77,6 +78,13 @@ model_info = {
     },
     "wdcnn": {
         "model": WDCNN,
+        "sample_length": 2048,
+        "tf": [NpToTensor(), ToSignal()]
+    },
+
+    ## 사용할 모델
+    "wdcnn2": {
+        "model": WDCNN2,
         "sample_length": 2048,
         "tf": [NpToTensor(), ToSignal()]
     },
@@ -226,7 +234,7 @@ def get_sampler(optimizer: str,
 def get_sample_length(model: str) -> int:
     model_list = get_model_list()
     if model not in model_list:
-        raise ValueError(f"model argument must be {model_list}")
+        raise ValueError(f"### model argument must be {model_list}")
 
     return model_info[model]["sample_length"]
 
@@ -245,7 +253,7 @@ def get_model(data: str, model: str, **kwargs):
     data_list = get_data_list()
 
     if model not in model_list:
-        raise ValueError(f"model argument must be {model_list}")
+        raise ValueError(f"### model argument must be {model_list}")
     if data not in data_list:
         raise ValueError(f"data argument must be {data_list}")
     

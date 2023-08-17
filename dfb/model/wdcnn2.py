@@ -1,3 +1,4 @@
+## WDCNN2 model by KSH
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -67,3 +68,5 @@ class WDCNN2(nn.Module):
 
     # def reset_weights(self):
     #     self.apply(self._init_weight)
+
+

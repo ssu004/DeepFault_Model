@@ -255,8 +255,7 @@ def sample_data(
         raise ValueError("class id is out of bound")
     sampled_data = np.array(
         [
-            data[i : i + sample_length]
-            for i in range(0, len(data) - sample_length, shift)
+            data[i : i + sample_length] for i in range(0, len(data) - sample_length, shift)
         ]
     )
     if one_hot:

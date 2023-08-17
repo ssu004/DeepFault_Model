@@ -3,19 +3,18 @@ import gdown
 import hashlib
 import zipfile
 
-os.chdir(os.path.join(globals()['_dh'][0], ".."))
-
-
-from ..dfb.download import *
-from ..dfb.databuilder import *
-from ..dfb.dataset import *
-from ..dfb.processing import *
+import os
+from datetime import datetime
+from dfb.download import *
+from dfb.databuilder import *
+from dfb.dataset import *
+from dfb.processing import *
 import experiment
 import torchvision.transforms as transforms
 
-from ..dfb.model.wdcnn import *
 import avalanche
 import json
+import argparse
 
 from avalanche.benchmarks.generators import dataset_benchmark
 from avalanche.benchmarks.utils import make_classification_dataset
@@ -27,8 +26,11 @@ from avalanche.evaluation.metrics import forgetting_metrics, \
 accuracy_metrics, loss_metrics
 from avalanche.logging import InteractiveLogger, TextLogger
 from avalanche.training.plugins import EvaluationPlugin, EarlyStoppingPlugin, ReplayPlugin
+from dfb.model.wdcnn import *
 
-import argparse
+from dfb.model.wdcnn2 import *
+
+model_name = "wdcnn2"
 
 parser = argparse.ArgumentParser()
 
@@ -36,7 +38,7 @@ parser.add_argument(
     '--level',
     type=int,
     choices=[1, 2, 3],
-    default=1
+    default=3
 )
 parser.add_argument(
     '--repeat',
@@ -46,7 +48,7 @@ parser.add_argument(
 parser.add_argument(
     '--strategy',
     type=str,
-    default='Naive'
+    default='Replay'
 )
 parser.add_argument(
     '--lr',
@@ -77,9 +79,30 @@ parser.add_argument(
 parser.add_argument(
     '--epoch',
     type=int,
-    default=50,
+    default=100,
 )
-opt = parser.parse_args()
+
+parser.add_argument(
+    '--memory-size',
+    type=int,
+    default=200,
+)
+
+parser.add_argument(
+    '--save_folder_name',
+    type=str,
+)
+
+def generate_save_folder_name(model_name, strategy):
+    # 현재의 날짜와 시간
+    now = datetime.now()
+    # 월과 일을 포맷으로 하는 문자열을 생성
+    date_str = now.strftime("%m%d")
+    # model_name을 대문자로 바꾸고, date_str 앞에 언더바를 추가
+    save_folder_name = model_name.upper() + "_" + strategy.upper() + "_" + date_str
+
+    return save_folder_name
+
 
 def get_hash(filename):
     with open(filename, "rb") as f:
@@ -98,7 +121,6 @@ data_info = {
     }
 }
 
-os.chdir(os.path.join(globals()['_dh'][0], ".."))
 
 if not os.path.isdir("./data"):
     os.mkdir("./data")
@@ -211,7 +233,7 @@ data_level3["A"] = bootstrap_from_dataframe(filter_cwru, 4096, 100, False, sampl
 data_level3["B"] = bootstrap_from_dataframe(filter_mfpt, 4096, 100, False, sample_map["mfpt"])
 data_level3["C"] = bootstrap_from_dataframe(filter_ottawa, 4096, 100, False, sample_map["ottawa"])
 
-model_name = "wdcnn"
+
 
 class MinMaxScaling:
     def __init__(self, min, max, scale, symmetric) -> None:
@@ -441,58 +463,61 @@ class CLExperiment:
                 accuracy_metrics(epoch=True, experience=True, stream=True),
                 loss_metrics(epoch=True, experience=True, stream=True),
                 forgetting_metrics(experience=True, stream=True),
-                loggers=self._initialize_loggers()
+                loggers=self._initialize_loggers(self.get_attr('interactive'))
             )
 
-        cl_type = self.get_attr('strategy')
+        cl_type = self.get_attr('strategy').lower()
 
-        if cl_type.lower() == 'naive':
-            self.strategy = Naive(
-                self.model,
-                self.optimizer,
-                self.criterion,
-                train_epochs=self.get_attr('epoch'),
-                train_mb_size=self.get_attr('batch_size'),
-                eval_mb_size=self.get_attr('batch_size'),
-                device=self.get_attr('device'),
-                evaluator=eval_plugin
+        common_args = dict(
+            model=self.model,
+            optimizer=self.optimizer,
+            criterion=self.criterion,
+            train_epochs=self.get_attr('epoch'),
+            train_mb_size=self.get_attr('batch_size'),
+            eval_mb_size=self.get_attr('batch_size'),
+            device=self.get_attr('device'),
+            evaluator=eval_plugin
+        )
+
+        if cl_type == 'naive':
+            self.strategy = Naive(**common_args)
+        elif cl_type == 'replay':
+            self.strategy = Replay(
+                **common_args,
+                mem_size=self.get_attr('memory_size')
             )
-        elif cl_type.lower() == 'replay':
-            self.strategy = Naive(
-                self.model,
-                self.optimizer,
-                self.criterion,
-                train_epochs=self.get_attr('epoch'),
-                train_mb_size=self.get_attr('batch_size'),
-                eval_mb_size=self.get_attr('batch_size'),
-                device=self.get_attr('device'),
-                evaluator=eval_plugin,
-                plugins=[ReplayPlugin(self.get_attr('memory_size'))]
+        elif cl_type == 'joint':
+            self.strategy = JointTraining(**common_args)
+        elif cl_type == 'cumulative':
+            self.strategy = Cumulative(**common_args)
+
+        elif cl_type == 'cwrstar':
+            self.strategy = CWRStar(
+                cwr_layer_name='head',   ####### WDCNN2 아키텍처 기준
+                **common_args
             )
-        elif cl_type.lower() == 'joint':
-            self.strategy = JointTraining(
-                self.model,
-                self.optimizer,
-                self.criterion,
-                train_epochs=self.get_attr('epoch'),
-                train_mb_size=self.get_attr('batch_size'),
-                eval_mb_size=self.get_attr('batch_size'),
-                device=self.get_attr('device'),
-                evaluator=eval_plugin
+        elif cl_type == 'gdumb':
+            self.strategy = GDumb(
+                **common_args
             )
-        elif cl_type.lower() == 'cumulative':
-            self.strategy = Cumulative(
-                self.model,
-                self.optimizer,
-                self.criterion,
-                train_epochs=self.get_attr('epoch'),
-                train_mb_size=self.get_attr('batch_size'),
-                eval_mb_size=self.get_attr('batch_size'),
-                device=self.get_attr('device'),
-                evaluator=eval_plugin
+        elif cl_type == 'lwf':
+            self.strategy = LwF(
+                alpha=0.2,  
+                temperature=1.2,  
+                **common_args
+            )
+        elif cl_type == 'gem':
+            self.strategy = GEM(
+                patterns_per_exp=1024,  # 내가 임의로 설정함
+                **common_args
+            )
+        elif cl_type == 'ewc':
+            self.strategy = EWC(
+                ewc_lambda=0.1,  # 1보다 작게 해야함
+                **common_args
             )
         else:
-            raise NotImplementedError("Such CL strategy has not been implemented yet!!!")
+            raise NotImplementedError(f"CL strategy '{cl_type}' has not been implemented yet!!!")
 
 
     def _make_param_string(self):
@@ -505,16 +530,13 @@ class CLExperiment:
         weight_decay = self.get_attr('weight_decay')
         momentum = self.get_attr('momentum')
 
-        if strategy == 'replay':
-            memory_size = self.get_attr('memory_size')
-            return f'{model_name}_level_{level}_{strategy}_{memory_size}_{optimizer}_lr_{lr}_momentum_{momentum}_l2_reg_{weight_decay}'
-        else:
-            return f'{model_name}_level_{level}_{strategy}_{optimizer}_lr_{lr}_momentum_{momentum}_l2_reg_{weight_decay}'
-
+        return f'{model_name}_level_{level}_{strategy}_{optimizer}_lr_{lr}_momentum_{momentum}_l2_reg_{weight_decay}'
 
     def _make_log_path(self):
-        return self._make_param_string() + '.log'
-
+        save_folder = self.get_attr('save_folder_name')
+        os.makedirs(save_folder, exist_ok=True)
+        log_path = os.path.join(save_folder, self._make_param_string() + '.log')  
+        return log_path
 
     def _initialize_loggers(self, interactive=True, text=True,):
         loggers = []
@@ -600,9 +622,12 @@ class CLExperiment:
     def save_results(self, filename=None):
         if not filename:
             filename = self._make_param_string() + '_results.json'
-        json.dump(self.avg_results, open(filename, 'w'),
-                  indent=4)
-
+        
+        save_folder = self.get_attr('save_folder_name')
+        os.makedirs(save_folder, exist_ok=True)
+        
+        filepath = os.path.join(save_folder, filename)
+        json.dump(self.avg_results, open(filepath, 'w'), indent=4)
 
     def get_best_result(self):
 
@@ -643,18 +668,29 @@ class CLExperiment:
         else:
             self._execute()
 
+
+opt = parser.parse_args()
+if opt.save_folder_name is None:
+    opt.save_folder_name = generate_save_folder_name(model_name, opt.strategy)
+
 cl_experiment = CLExperiment(opt)
 
 repeat = cl_experiment.get_attr('repeat')
 level = cl_experiment.get_attr('level')
-
 for idx in range(repeat):
-    model = WDCNN(n_classes=classes_in_level(level))
+    model = WDCNN2(n_classes=classes_in_level(level))
     
     cl_experiment.initialize(model)
     cl_experiment.execute(idx)
 
 cl_experiment.save_results()
+
+########## 자동완성 ############
+best_result_idx, best_result = cl_experiment.get_best_result()
+
+print(f"Best result is {best_result_idx}th execution with {best_result['avg_accuracy'][-1]} accuracy!!!")
+
+
 
 
 
