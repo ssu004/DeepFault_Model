@@ -31,7 +31,7 @@ class WDCNN4(nn.Module):
             #Pool4
             torch.nn.MaxPool1d(2, 2),
             #Conv5
-            torch.nn.Conv1d(16, 32, 3, stride=1, padding='same'),
+            torch.nn.Conv1d(16, 32, 3, stride=1, padding=0),
             torch.nn.BatchNorm1d(32),
             torch.nn.ReLU(),
             #Pool5

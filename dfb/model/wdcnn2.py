@@ -24,11 +24,11 @@ class WDCNN2(nn.Module):
             torch.nn.ReLU(),
             #Pool3
             torch.nn.MaxPool1d(2, 2),
-            #Conv5
+            #Conv4
             torch.nn.Conv1d(32, 32, 3, stride=1, padding=0),
             torch.nn.BatchNorm1d(32),
             torch.nn.ReLU(),
-            #Pool5
+            #Pool4
             torch.nn.MaxPool1d(2, 2)
         )
 
