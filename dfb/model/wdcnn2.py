@@ -33,7 +33,7 @@ class WDCNN2(nn.Module):
         )
 
         with torch.no_grad():
-            dummy = torch.rand(1, 1, 2048)
+            dummy = torch.rand(1, 1, 4096)
             dummy = self.conv_layers(dummy)
             dummy = torch.flatten(dummy, 1)
             lin_input = dummy.shape[1]
