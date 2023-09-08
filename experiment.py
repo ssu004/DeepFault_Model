@@ -84,7 +84,7 @@ model_info = {
     },
     "wdcnn2": {
         "model": WDCNN2,
-        "sample_length": 2048,
+        "sample_length": 4096,
         "tf": [NpToTensor(), ToSignal()]
     },
     "wdcnn3": {
