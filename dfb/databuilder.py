@@ -112,7 +112,7 @@ def build_from_dataframe(
     return data_array, label_array
 
 def bootstrap_from_dataframe(
-    df: pd.DataFrame, sample_length: int, n_sample: int, one_hot: bool = False, n_map: Dict = None
+    df: pd.DataFrame, sample_length: int, n_sample: int, sample_ratio: float, dataset_name, one_hot: bool = False, n_map: Dict = None
 ) -> Tuple[np.ndarray, np.ndarray]:
     """데이터프레임으로부터 np.ndarray 형태의 데이터 쌍 생성
 
@@ -144,6 +144,15 @@ def bootstrap_from_dataframe(
             n_samples = indiv_sample
         else:
             n_samples = n_map[str(df.iloc[i]["label"])]
+        # mfpt의 경우 데이터 하나당 샘플을 42개씩 뽑기 때문에 6:2:2의 비율로 나누면 정수로 나누어 떨어지지 않음
+        # 따라서 임의로 n_samples를 조작하여 CWRU, OTTAWA와 데이터의 수를 갖게 맞추어야 함
+        if(dataset_name == "mfpt"):
+            if(sample_ratio > 0.5):
+                if(i > 2 and i < 5):
+                    n_samples += 1
+            else:
+                if(i > 2 and i < 7):
+                    n_samples += 1
         td, tl = bootstrap_data(
             d, sample_length, n_samples, df.iloc[i]["label"], n_class, one_hot
         )
