@@ -85,12 +85,7 @@ model_info = {
     ## 사용할 모델
     "wdcnn2": {
         "model": WDCNN2,
-        "sample_length": 2048,
-        "tf": [NpToTensor(), ToSignal()]
-    },
-    "wdcnn2": {
-        "model": WDCNN2,
-        "sample_length": 2048,
+        "sample_length": 4096,
         "tf": [NpToTensor(), ToSignal()]
     },
     "lnrnet": {
