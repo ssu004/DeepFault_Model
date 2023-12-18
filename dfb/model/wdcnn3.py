@@ -1,11 +1,10 @@
-## WDCNN2 model by KSH
 import torch
 from torch import nn
 import torch.nn.functional as F
 
-class WDCNN2(nn.Module):
+class WDCNN3(nn.Module):
     def __init__(self, first_kernel: int=64, n_classes: int=10) -> None:
-        super(WDCNN2, self).__init__()
+        super(WDCNN3, self).__init__()
         self.conv_layers = nn.Sequential(
             #Conv1
             torch.nn.Conv1d(1, 16, first_kernel, stride=16, padding=24),
@@ -14,22 +13,28 @@ class WDCNN2(nn.Module):
             #Pool1
             torch.nn.MaxPool1d(2, 2),
             #Conv2
-            torch.nn.Conv1d(16, 32, 3, stride=1, padding='same'),
-            torch.nn.BatchNorm1d(32),
+            torch.nn.Conv1d(16, 16, 3, stride=1, padding='same'),
+            torch.nn.BatchNorm1d(16),
             torch.nn.ReLU(),
             #Pool2
             torch.nn.MaxPool1d(2, 2),
             #Conv3
-            torch.nn.Conv1d(32, 32, 3, stride=1, padding='same'),
-            torch.nn.BatchNorm1d(32),
+            torch.nn.Conv1d(16, 16, 3, stride=1, padding='same'),
+            torch.nn.BatchNorm1d(16),
             torch.nn.ReLU(),
             #Pool3
             torch.nn.MaxPool1d(2, 2),
             #Conv4
-            torch.nn.Conv1d(32, 32, 3, stride=1, padding=0),
+            torch.nn.Conv1d(16, 32, 3, stride=1, padding='same'),
             torch.nn.BatchNorm1d(32),
             torch.nn.ReLU(),
             #Pool4
+            torch.nn.MaxPool1d(2, 2),
+            #Conv5
+            torch.nn.Conv1d(32, 32, 3, stride=1, padding=0),
+            torch.nn.BatchNorm1d(32),
+            torch.nn.ReLU(),
+            #Pool5
             torch.nn.MaxPool1d(2, 2)
         )
 
@@ -68,5 +73,3 @@ class WDCNN2(nn.Module):
 
     # def reset_weights(self):
     #     self.apply(self._init_weight)
-
-
